@@ -1,0 +1,7 @@
+print("Hello, GitHub!")
+print("I finally made it!")
+print("Im editting in github!")
+print("This will work!")
+print('This will also work!')
+print("Hello World!", end=" ")
+print("I will print on the same line.")
