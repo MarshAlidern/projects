@@ -1,0 +1,5 @@
+print("hello world")
+print("Bye-bye!")
+print("Are you still here?")
+print("Yes, I am here")
+print("I am missing you")
