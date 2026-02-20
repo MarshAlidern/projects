@@ -37,3 +37,42 @@ class Class4(Class2, Class3):
     
 obj = Class4()
 obj.m()
+
+class Class1:
+    def m(self):
+        print("In Class1")
+
+class Class2(Class1):
+    pass
+
+class Class3(Class1):
+    def m(self):
+        print("In Class3")
+
+class Class4(Class2, Class3):
+    pass
+
+obj = Class4()
+obj.m()
+
+class Class1:
+    def m(self):
+        print("In Class1")
+
+class Class2(Class1):
+    def m(self):
+        print("In Class2")
+
+class Class3(Class1):
+    def m(self):
+        print("In Class3")
+
+class Class4(Class2, Class3):
+    def m(self):
+        print("In Class4")
+
+obj = Class4()
+obj.m()
+Class2.m(obj)
+Class3.m(obj)
+Class1.m(obj)
