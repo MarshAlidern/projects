@@ -14,11 +14,9 @@ i = 0
 while i < len(lines):
     line = lines[i].strip()
 
-    # product line (starts with number like "1.")
     if re.match(r"^\d+\.", line):
         name = line.split(".", 1)[1].strip()
 
-        # sometimes product name continues on next line
         if i + 1 < len(lines) and "x" not in lines[i + 1]:
             name += " " + lines[i + 1].strip()
             i += 1
@@ -26,7 +24,6 @@ while i < len(lines):
         qty_line = lines[i + 1].strip()
         total_line = lines[i + 2].strip()
 
-        # extract quantity and price
         qty_price_match = re.search(r"([\d,]+)\s*x\s*([\d\s,]+)", qty_line)
         if qty_price_match:
             qty = float(qty_price_match.group(1).replace(",", "."))
@@ -49,15 +46,12 @@ while i < len(lines):
         i += 1
 
 
-# Extract date and time
 date_time_match = re.search(r"Время:\s*([\d\.]+\s[\d:]+)", text)
 date_time = date_time_match.group(1) if date_time_match else None
 
-# Extract payment method
 payment_match = re.search(r"(Банковская карта|Наличные)", text)
 payment_method = payment_match.group(1) if payment_match else None
 
-# Extract total
 total_match = re.search(r"ИТОГО:\s*([\d\s,]+)", text)
 total_amount = float(total_match.group(1).replace(" ", "").replace(",", ".")) if total_match else sum(prices)
 
