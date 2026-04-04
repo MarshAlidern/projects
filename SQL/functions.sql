@@ -4,8 +4,8 @@ LANGUAGE plpgsql
 AS $$
 BEGIN
     RETURN QUERY
-    SELECT id, first_name, phone
-    FROM phonebook
+    SELECT p.id, p.first_name, p.phone
+    FROM phonebook p
     WHERE first_name ILIKE '%' || pattern || '%'
        OR phone ILIKE '%' || pattern || '%';
 END;
@@ -17,9 +17,9 @@ LANGUAGE plpgsql
 AS $$
 BEGIN
     RETURN QUERY
-    SELECT id, first_name, phone
-    FROM phonebook
-    ORDER BY id
+    SELECT p.id, p.first_name, p.phone
+    FROM phonebook p
+    ORDER BY p.id
     LIMIT limit_val OFFSET offset_val;
 END;
 $$;
