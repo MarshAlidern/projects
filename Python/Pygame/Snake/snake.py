@@ -2,7 +2,6 @@ import pygame
 import random
 import sys
 
-# ---------------- CONFIG ----------------
 CELL = 20
 COLS = 30
 ROWS = 24
@@ -32,7 +31,6 @@ OPPOSITES = {UP: DOWN, DOWN: UP, LEFT: RIGHT, RIGHT: LEFT}
 
 Tasks = {1: 40, 2: 60, 3: 80}
 
-# ---------------- UTILS ----------------
 def cell_rect(x, y):
     return pygame.Rect(x * CELL + 1, y * CELL + 1, CELL - 2, CELL - 2)
 
@@ -50,7 +48,6 @@ def draw_text(surf, text, size, x, y, color=TEXT_COL, anchor="center"):
     setattr(r, anchor, (x, y))
     surf.blit(img, r)
 
-# ---------------- STATE ----------------
 def new_game():
     start = (COLS // 2, ROWS // 2)
     snake = [start, (start[0]-1, start[1]), (start[0]-2, start[1])]
@@ -70,10 +67,9 @@ def new_game():
         "show_level": False,
         "level_timer": 0,
 
-        "overlay_type": None   # None / "congrats"
+        "overlay_type": None   
     }
 
-# ---------------- GAME LOGIC ----------------
 def update(state):
     if not state["alive"]:
         return state
@@ -101,19 +97,16 @@ def update(state):
 
     return state
 
-# ---------------- LEVEL SYSTEM ----------------
 def chk_score(state):
     if not state["alive"]:
         return
 
     level = state["level"]
 
-    # финальный уровень → CONGRATS
     if state["score"] >= Tasks[3]:
         state["overlay_type"] = "congrats"
         return
 
-    # обычный level up
     if level in Tasks and state["score"] >= Tasks[level]:
         state["level"] += 1
         state["speed"] += 2
@@ -124,7 +117,6 @@ def chk_score(state):
         state["show_level"] = True
         state["level_timer"] = pygame.time.get_ticks()
 
-# ---------------- DRAW ----------------
 def draw_grid(surf):
     for x in range(0, W, CELL):
         pygame.draw.line(surf, GRID_COL, (x, 0), (x, H))
@@ -152,7 +144,6 @@ def draw_overlay(surf, title, subtitle):
     draw_text(surf, title, 42, W//2, H//2 - 40)
     draw_text(surf, subtitle, 18, W//2, H//2 + 20, color=DIM_COL)
 
-# ---------------- MAIN ----------------
 def main():
     pygame.init()
     screen = pygame.display.set_mode((W, H))
@@ -164,7 +155,6 @@ def main():
 
     while True:
 
-        # -------- EVENTS --------
         for event in pygame.event.get():
             if event.type == pygame.QUIT:
                 pygame.quit()
@@ -172,7 +162,6 @@ def main():
 
             if event.type == pygame.KEYDOWN:
 
-                # restart from congrats
                 if state["overlay_type"] == "congrats":
                     if event.key == pygame.K_r:
                         state = new_game()
@@ -204,27 +193,23 @@ def main():
 
         current_time = pygame.time.get_ticks()
 
-        # -------- UPDATE --------
         if state["overlay_type"] is None and started and state["alive"]:
             state = update(state)
 
         chk_score(state)
 
-        # -------- DRAW --------
         draw_game(screen, state)
 
-        # LEVEL TEXT
         if state["show_level"]:
             draw_overlay(screen, f"LEVEL {state['level']}", "")
 
             if current_time - state["level_timer"] > 1500:
                 state["show_level"] = False
 
-        # FINAL CONGRATS (FOREVER)
         if state["overlay_type"] == "congrats":
             draw_overlay(screen, "CONGRATS!", "Press R to restart")
 
-        # START / GAME OVER
+    
         if not started:
             draw_overlay(screen, "SNAKE", "Press key to start")
         elif not state["alive"]:
