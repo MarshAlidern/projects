@@ -15,8 +15,8 @@ BGL = {
 }
 
 GRID_COL  = (20, 24, 34)
-SNAKE_HEAD= (80, 220, 120)
-SNAKE_BODY= (40, 160, 80)
+SNAKE_HEAD = (80, 220, 120)
+SNAKE_BODY = (40, 160, 80)
 FOOD_COL  = (230, 70, 80)
 
 TEXT_COL  = (200, 210, 220)
@@ -31,15 +31,58 @@ OPPOSITES = {UP: DOWN, DOWN: UP, LEFT: RIGHT, RIGHT: LEFT}
 
 Tasks = {1: 40, 2: 60, 3: 80}
 
-def cell_rect(x, y):
-    return pygame.Rect(x * CELL + 1, y * CELL + 1, CELL - 2, CELL - 2)
-
 def random_food(snake):
     occupied = set(snake)
     while True:
         pos = (random.randint(0, COLS - 1), random.randint(0, ROWS - 1))
         if pos not in occupied:
             return pos
+
+class Snake():
+    def __init__(self):
+        self.snake_body = [(COLS // 2, ROWS // 2)]
+        self.snake_head = self.snake_body[0]
+        self.direction = RIGHT
+        self.next_dir = RIGHT
+        self.food = random_food(self.snake_body),
+        self.score = 0
+        self.alive = True
+        self.level = 1
+        self.speed = 0
+        self.bg = BGL[1]
+        self.show_level = False
+        self.level_timer = 0
+        self.overlay_type = None   
+    
+    def update(self):
+        if self.alive:
+            self.snake_body = [(COLS // 2, ROWS // 2)]
+
+        dx, dy = self.next_dir
+        hx, hy = self.snake_body[0]
+        new_head = (hx + dx, hy + dy)
+
+        if not (0 <= new_head[0] < COLS and 0 <= new_head[1] < ROWS):
+            self.alive = False
+
+
+        if new_head in self.snake_body:
+            self.alive = False
+
+
+        self.direction = self.next_dir
+        self.snake_body.insert(0, new_head)
+
+        if new_head == self.food:
+            self.score += 10
+            self.food = random_food(self.snake_body)
+        else:
+            self.snake_body.pop()
+
+def cell_rect(x, y):
+    return pygame.Rect(x * CELL + 1, y * CELL + 1, CELL - 2, CELL - 2)
+
+
 
 def draw_text(surf, text, size, x, y, color=TEXT_COL, anchor="center"):
     font = pygame.font.SysFont(None, size, bold=True)
@@ -48,74 +91,27 @@ def draw_text(surf, text, size, x, y, color=TEXT_COL, anchor="center"):
     setattr(r, anchor, (x, y))
     surf.blit(img, r)
 
-def new_game():
-    start = (COLS // 2, ROWS // 2)
-    snake = [start, (start[0]-1, start[1]), (start[0]-2, start[1])]
 
-    return {
-        "snake": snake,
-        "direction": RIGHT,
-        "next_dir": RIGHT,
-        "food": random_food(snake),
-        "score": 0,
-        "alive": True,
-
-        "level": 1,
-        "speed": 0,
-        "bg": BGL[1],
-
-        "show_level": False,
-        "level_timer": 0,
-
-        "overlay_type": None   
-    }
-
-def update(state):
-    if not state["alive"]:
-        return state
-
-    dx, dy = state["next_dir"]
-    hx, hy = state["snake"][0]
-    new_head = (hx + dx, hy + dy)
-
-    if not (0 <= new_head[0] < COLS and 0 <= new_head[1] < ROWS):
-        state["alive"] = False
-        return state
-
-    if new_head in state["snake"]:
-        state["alive"] = False
-        return state
-
-    state["direction"] = state["next_dir"]
-    state["snake"].insert(0, new_head)
-
-    if new_head == state["food"]:
-        state["score"] += 10
-        state["food"] = random_food(state["snake"])
-    else:
-        state["snake"].pop()
-
-    return state
-
-def chk_score(state):
-    if not state["alive"]:
+def chk_score(snake):
+    if not snake.alive:
         return
 
-    level = state["level"]
+    level = snake.level
 
-    if state["score"] >= Tasks[3]:
-        state["overlay_type"] = "congrats"
+    if snake.level >= Tasks[3]:
+        snake.overlay_type = "congrats"
         return
 
-    if level in Tasks and state["score"] >= Tasks[level]:
-        state["level"] += 1
-        state["speed"] += 2
+    if level in Tasks and snake.score >= Tasks[level]:
+        snake.score = 0
+        snake.level += 1
+        snake.speed += 2
 
-        bg_index = (state["level"] - 1) % len(BGL) + 1
-        state["bg"] = BGL[bg_index]
+        bg_index = (snake.level - 1) % len(BGL) + 1
+        snake.bg = BGL[bg_index]
 
-        state["show_level"] = True
-        state["level_timer"] = pygame.time.get_ticks()
+        snake.show_level = True
+        snake.level_timer = pygame.time.get_ticks()
 
 def draw_grid(surf):
     for x in range(0, W, CELL):
@@ -123,18 +119,18 @@ def draw_grid(surf):
     for y in range(0, H, CELL):
         pygame.draw.line(surf, GRID_COL, (0, y), (W, y))
 
-def draw_game(surf, state):
-    surf.fill(state["bg"])
+def draw_game(surf, snake):
+    surf.fill(snake.bg)
     draw_grid(surf)
 
-    fx, fy = state["food"]
+    fx, fy = snake.food
     pygame.draw.rect(surf, FOOD_COL, cell_rect(fx, fy), border_radius=4)
 
-    for i, (x, y) in enumerate(state["snake"]):
+    for i, (x, y) in enumerate(snake.snake_body):
         color = SNAKE_HEAD if i == 0 else SNAKE_BODY
         pygame.draw.rect(surf, color, cell_rect(x, y), border_radius=4)
 
-    draw_text(surf, f"SCORE {state['score']:04d}", 18,
+    draw_text(surf, f"SCORE {snake.score:04d}", 36,
               W - 10, 10, color=DIM_COL, anchor="topright")
 
 def draw_overlay(surf, title, subtitle):
@@ -149,11 +145,12 @@ def main():
     screen = pygame.display.set_mode((W, H))
     pygame.display.set_caption("Snake")
     clock = pygame.time.Clock()
+    snake = Snake()
 
-    state = new_game()
     started = False
+    run = True
 
-    while True:
+    while run:
 
         for event in pygame.event.get():
             if event.type == pygame.QUIT:
@@ -162,18 +159,20 @@ def main():
 
             if event.type == pygame.KEYDOWN:
 
-                if state["overlay_type"] == "congrats":
+                if snake.overlay_type == "congrats":
                     if event.key == pygame.K_r:
-                        state = new_game()
                         started = False
 
                 elif event.key == pygame.K_r:
-                    state = new_game()
                     started = False
 
-                elif not state["alive"]:
-                    state = new_game()
+                elif not snake.alive:
                     started = False
+
+                if event.key == pygame.K_ESCAPE:
+                    run = False
+                    pygame.quit()
+                    sys.exit()
 
                 else:
                     key_dir = {
@@ -187,38 +186,37 @@ def main():
                         pygame.K_d: RIGHT,
                     }.get(event.key)
 
-                    if key_dir and key_dir != OPPOSITES.get(state["direction"]):
-                        state["next_dir"] = key_dir
+                    if key_dir and key_dir != OPPOSITES.get(snake.direction):
+                        snake.next_dir = key_dir
                         started = True
 
         current_time = pygame.time.get_ticks()
 
-        if state["overlay_type"] is None and started and state["alive"]:
-            state = update(state)
+        if snake.overlay_type is None and started and snake.alive:
 
-        chk_score(state)
+            chk_score(snake)
+            draw_game(screen,snake)
 
-        draw_game(screen, state)
+        if snake.show_level:
+            draw_overlay(screen, f"LEVEL {snake.level}", "")
 
-        if state["show_level"]:
-            draw_overlay(screen, f"LEVEL {state['level']}", "")
+            if current_time - snake.level_timer > 1500:
+                snake.level_timer = False
 
-            if current_time - state["level_timer"] > 1500:
-                state["show_level"] = False
-
-        if state["overlay_type"] == "congrats":
+        if snake.overlay_type == "congrats":
             draw_overlay(screen, "CONGRATS!", "Press R to restart")
 
     
         if not started:
             draw_overlay(screen, "SNAKE", "Press key to start")
-        elif not state["alive"]:
+        elif not snake.alive:
+
             draw_overlay(screen,
-                         f"GAME OVER {state['score']:04d}",
+                         f"GAME OVER {snake.level:04d}",
                          "Press any key")
 
         pygame.display.flip()
-        clock.tick(FPS + state["speed"])
+        clock.tick(FPS + snake.speed)
 
 
 if __name__ == "__main__":
